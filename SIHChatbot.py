@@ -1,32 +1,34 @@
 import openai
+import os
+from getpass import getpass
 
-# Your Groq API Key
-openai.api_key = "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"
+# Your Groq API Key - try to get from environment first
+openai.api_key = os.environ.get("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") 
+
+# If the hardcoded key doesn't work, prompt user
+try:
+    # Test if the key works with a simple validation
+    openai.ChatCompletion.create(
+        model="llama3-70b-8192",
+        messages=[{"role": "system", "content": "test"}],
+        max_tokens=5
+    )
+except:
+    print("🔐 API key not working. Please enter your Groq API key.")
+    print("You can get it from: https://console.groq.com/keys")
+    openai.api_key = getpass("Enter your API key: ")
 
 # Use Groq's custom API base
 openai.api_base = "https://api.groq.com/openai/v1"
 
 MODEL = "llama3-70b-8192"
 
-
 def chat():
-    print(" Hello! How may I help you today!!!")
+    print(" Welcome to your Groq-powered chatbot!")
     print("💬 Start chatting! Type 'exit' to stop.")
-    print("📝 This chatbot specializes in SCD-V Division scholarship schemes and Aadhaar seeding information")
 
-    # Enhanced system prompt to strictly control the topic
-    system_prompt = """You are a specialized assistant for SCD-V Division, DoSJE scholarship schemes. 
-    Your expertise is limited to:
-    - Pre-Matric and Post-Matric scholarship schemes for SC students
-    - Direct Beneficiary Transfer (DBT) enabled Aadhaar seeded bank accounts
-    - Difference between Aadhaar linked vs DBT-enabled Aadhaar seeded accounts
-    - Scholarship disbursement procedures
-    - Aadhaar seeding awareness programs through Gram Panchayats, school committees, and parent-teacher meetings
-
-    If asked about any other topic, politely decline and redirect the conversation back to scholarship schemes 
-    and Aadhaar seeding procedures. Do not provide information on any other subjects."""
-
-    messages = [{"role": "system", "content": system_prompt}]
+    # Initialize chat history
+    messages = [{"role": "system", "content": "You are a helpful assistant that only discusses SCD-V Division scholarship schemes, Aadhaar seeding procedures, and related topics. If asked about other subjects, politely decline and redirect to the specified topics."}]
 
     while True:
         user_input = input("\nYou: ")
@@ -52,7 +54,10 @@ def chat():
 
         except Exception as e:
             print("❌ Error:", e)
-
+            # If it's an authentication error, prompt for new key
+            if "authentication" in str(e).lower() or "401" in str(e):
+                print("🔐 Authentication failed. Please enter a valid API key.")
+                openai.api_key = getpass("Enter your API key: ")
 
 # Run the chatbot
 if __name__ == "__main__":
